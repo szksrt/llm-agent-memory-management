@@ -1,6 +1,8 @@
 from sentence_transformers import SentenceTransformer
 from sentence_transformers.util import cos_sim
 
+MAX_MEMORY = 5
+
 
 class MemorySimilarity:
     def __init__(self):
@@ -11,31 +13,40 @@ class MemorySimilarity:
             "all-MiniLM-L6-v2"
         )
 
-        self.threshold = 0.8
-
     def add(self, text):
 
-        if len(self.memories) == 0:
+        if len(self.memories) < MAX_MEMORY:
             self.memories.append(text)
             return
 
-        text_embedding = self.model.encode(
-            text,
+        all_memories = self.memories + [text]
+
+        embeddings = self.model.encode(
+            all_memories,
             convert_to_tensor=True
         )
 
-        memory_embeddings = self.model.encode(
-            self.memories,
-            convert_to_tensor=True
+        sim_matrix = cos_sim(
+            embeddings,
+            embeddings
         )
 
-        similarities = cos_sim(
-            text_embedding,
-            memory_embeddings
-        )[0]
+        n = len(all_memories)
 
-        if similarities.max() < self.threshold:
-            self.memories.append(text)
+        max_sim = -1
+        remove_idx = -1
+
+        for i in range(n):
+            for j in range(i + 1, n):
+
+                if sim_matrix[i][j] > max_sim:
+                    max_sim = sim_matrix[i][j]
+
+                    remove_idx = j
+
+        all_memories.pop(remove_idx)
+
+        self.memories = all_memories
 
     def get_all(self):
         return self.memories
