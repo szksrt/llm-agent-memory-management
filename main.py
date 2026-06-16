@@ -2,6 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from google import genai
+from memory import Memory
 
 load_dotenv()
 
@@ -10,7 +11,8 @@ client = genai.Client(
 )
 
 history = []
-long_term_memory = []
+
+memory = Memory()
 
 while True:
     user_input = input("You > ")
@@ -19,10 +21,10 @@ while True:
         break
 
     if "私の名前は" in user_input:
-        long_term_memory.append(user_input)
+        memory.add(user_input)
 
     print("\n===== LONG TERM MEMORY =====")
-    print(long_term_memory)
+    print(memory.get_all())
     print("============================\n")
 
 
@@ -30,7 +32,7 @@ while True:
         f"User: {user_input}"
     )
 
-    memory_text = "\n".join(long_term_memory)
+    memory_text = "\n".join(memory.get_all())
 
     prompt = f"""
     長期記憶:
