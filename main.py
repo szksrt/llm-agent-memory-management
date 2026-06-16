@@ -16,32 +16,38 @@ memory = Memory()
 
 while True:
     user_input = input("You > ")
-    
+
     if user_input == "exit":
         break
-
-    if "私の名前は" in user_input:
-        memory.add(user_input)
+    
+    memory.add(user_input)
 
     print("\n===== LONG TERM MEMORY =====")
     print(memory.get_all())
     print("============================\n")
 
+    retrieved_memory = memory.retrieve(
+        user_input
+    )
+
+    print("\n===== RETRIEVED MEMORY =====")
+    print(retrieved_memory)
+    print("============================\n")
 
     history.append(
         f"User: {user_input}"
     )
 
-    memory_text = "\n".join(memory.get_all())
-
     prompt = f"""
-    長期記憶:
-    {memory_text}
+    関連記憶:
+    {retrieved_memory}
 
     会話履歴:
     {'\n'.join(history)}
+
+    関連記憶を必要に応じて利用しながら回答してください。
     """
-    
+
     print("\n===== PROMPT =====")
     print(prompt)
     print("==================\n")

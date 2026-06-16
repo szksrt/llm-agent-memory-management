@@ -3,7 +3,8 @@ from sentence_transformers.util import cos_sim
 
 MAX_MEMORY = 5
 
-class Memory:
+
+class MemoryFIFO:
     def __init__(self):
         self.memories = []
 
@@ -21,10 +22,10 @@ class Memory:
     def get_all(self):
         return self.memories
 
-    def retrieve(self, query):
+    def retrieve(self, query, k=3):
 
         if not self.memories:
-            return ""
+                return []
 
         query_embedding = self.model.encode(
             query,
@@ -34,13 +35,18 @@ class Memory:
         memory_embeddings = self.model.encode(
             self.memories,
             convert_to_tensor=True
-        )
+        )   
 
         similarities = cos_sim(
             query_embedding,
             memory_embeddings
         )[0]
 
-        best_idx = similarities.argmax()
+        top_indices = similarities.argsort(
+            descending=True
+        )[:k]
 
-        return self.memories[best_idx]
+        return [
+            self.memories[idx]
+            for idx in top_indices
+        ]
